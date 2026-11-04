@@ -29,7 +29,7 @@ export default function WelcomeScreen() {
             style={styles.logo}
             resizeMode="contain"
           />
-          <Text style={styles.logoText}>Proxi</Text>
+          
         </View>
 
         {/* Présentation */}
@@ -44,11 +44,7 @@ export default function WelcomeScreen() {
             chez vous.
           </Text>
 
-          <Text style={styles.description}>
-            Découvrez une nouvelle façon de faire vos courses.
-            Commandez auprès des commerces de proximité et recevez
-            vos produits directement chez vous.
-          </Text>
+         
         </View>
 
         {/* Illustration */}
@@ -64,10 +60,8 @@ export default function WelcomeScreen() {
           </Text>
         </View>
 
-        {/* Services */}
-        <Text style={styles.sectionTitle}>
-          Tout le monde y gagne
-        </Text>
+      
+       
 
         {/* Clients */}
         <View style={styles.featureCard}>
