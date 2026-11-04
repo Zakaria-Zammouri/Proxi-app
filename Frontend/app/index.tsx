@@ -1,173 +1,307 @@
-
-import { useState } from "react";
 import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
   View,
+  Text,
+  Image,
+  ScrollView,
+  Pressable,
+  StyleSheet,
 } from "react-native";
 
-import { Stack } from "expo-router";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Text } from "@/components/ui/text";
+import { StatusBar as ExpoStatusBar } from "expo-status-bar";
+import { Stack, router } from "expo-router";
 
-export default function LoginScreen() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-  function handleLogin() {
-    if (!email.trim() || !password) {
-      Alert.alert(
-        "Champs obligatoires",
-        "Veuillez saisir votre adresse e-mail et votre mot de passe."
-      );
-      return;
-    }
-
-    Alert.alert(
-      "Proxi",
-      "L'interface fonctionne ! La connexion réelle sera ajoutée ensuite."
-    );
-  }
-
-  function handleForgotPassword() {
-    Alert.alert(
-      "Mot de passe oublié",
-      "La récupération du mot de passe sera ajoutée prochainement."
-    );
-  }
-
-  function handleRegister() {
-    Alert.alert(
-      "Créer un compte",
-      "La page d'inscription sera ajoutée prochainement."
-    );
-  }
-
+export default function WelcomeScreen() {
   return (
     <>
-      <Stack.Screen options={{ title: "Connexion", headerShown: false }} />
+      <Stack.Screen options={{ headerShown: false }} />
 
-      <KeyboardAvoidingView
-        className="flex-1 bg-white"
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      <ExpoStatusBar style="dark" />
+
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
       >
-        <ScrollView
-          className="flex-1"
-          contentContainerStyle={{
-            flexGrow: 1,
-            justifyContent: "center",
-            paddingHorizontal: 24,
-            paddingVertical: 32,
-          }}
-          keyboardShouldPersistTaps="handled"
+        {/* Logo */}
+        <View style={styles.logoContainer}>
+          <Image
+            source={require("../assets/images/logo-proxi.png")}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <Text style={styles.logoText}>Proxi</Text>
+        </View>
+
+        {/* Présentation */}
+        <View style={styles.hero}>
+          <Text style={styles.badge}>
+            BIENVENUE CHEZ PROXI
+          </Text>
+
+          <Text style={styles.title}>
+            Vos courses,{"\n"}
+            à deux pas de{"\n"}
+            chez vous.
+          </Text>
+
+          <Text style={styles.description}>
+            Découvrez une nouvelle façon de faire vos courses.
+            Commandez auprès des commerces de proximité et recevez
+            vos produits directement chez vous.
+          </Text>
+        </View>
+
+        {/* Illustration */}
+        <View style={styles.illustration}>
+          <Image
+            source={require("../assets/images/logo-proxi.png")}
+            style={styles.heroImage}
+            resizeMode="contain"
+          />
+
+          <Text style={styles.illustrationText}>
+            Le commerce local, simplifié.
+          </Text>
+        </View>
+
+        {/* Services */}
+        <Text style={styles.sectionTitle}>
+          Tout le monde y gagne
+        </Text>
+
+        {/* Clients */}
+        <View style={styles.featureCard}>
+          <View style={styles.iconContainer}>
+            <Text style={styles.featureIcon}>🛍️</Text>
+          </View>
+
+          <View style={styles.featureContent}>
+            <Text style={styles.featureTitle}>
+              Pour les clients
+            </Text>
+            <Text style={styles.featureDescription}>
+              Commandez facilement vos produits préférés.
+            </Text>
+          </View>
+        </View>
+
+        {/* Commerçants */}
+        <View style={styles.featureCard}>
+          <View style={styles.iconContainer}>
+            <Text style={styles.featureIcon}>🏪</Text>
+          </View>
+
+          <View style={styles.featureContent}>
+            <Text style={styles.featureTitle}>
+              Pour les commerçants
+            </Text>
+            <Text style={styles.featureDescription}>
+              Développez votre activité et trouvez de nouveaux clients.
+            </Text>
+          </View>
+        </View>
+
+        {/* Livreurs */}
+        <View style={styles.featureCard}>
+          <View style={styles.iconContainer}>
+            <Text style={styles.featureIcon}>🛵</Text>
+          </View>
+
+          <View style={styles.featureContent}>
+            <Text style={styles.featureTitle}>
+              Pour les livreurs
+            </Text>
+            <Text style={styles.featureDescription}>
+              Effectuez des livraisons et gagnez de l'argent.
+            </Text>
+          </View>
+        </View>
+
+        {/* Inscription */}
+        <Pressable
+          style={styles.primaryButton}
+          onPress={() => router.push("/signup")}
         >
-          {/* Logo Proxi */}
-          <View className="mb-10 items-center">
-            <View className="mb-4 h-20 w-20 items-center justify-center rounded-3xl bg-green-600">
-              <Text className="text-4xl font-bold text-white">P</Text>
-            </View>
+          <Text style={styles.primaryButtonText}>
+            Commencer
+          </Text>
+        </Pressable>
 
-            <Text className="text-4xl font-bold text-green-700">
-              Proxi
-            </Text>
+        {/* Connexion */}
+        <Pressable
+          style={styles.secondaryButton}
+          onPress={() => router.push("/login")}
+        >
+          <Text style={styles.secondaryButtonText}>
+            J'ai déjà un compte
+          </Text>
+        </Pressable>
 
-            <Text className="mt-2 text-center text-base text-gray-500">
-              Vos courses locales, en toute simplicité.
-            </Text>
-          </View>
-
-          {/* Présentation */}
-          <View className="mb-8">
-            <Text className="mb-2 text-3xl font-bold text-gray-900">
-              Bienvenue !
-            </Text>
-
-            <Text className="text-base text-gray-500">
-              Connectez-vous à votre compte.
-            </Text>
-          </View>
-
-          {/* Formulaire */}
-          <View className="gap-5">
-            <View>
-              <Text className="mb-2 font-semibold text-gray-800">
-                Adresse e-mail
-              </Text>
-
-              <Input
-                className="h-12 rounded-xl border-gray-300 px-4"
-                placeholder="exemple@email.com"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                autoComplete="email"
-                returnKeyType="next"
-              />
-            </View>
-
-            <View>
-              <Text className="mb-2 font-semibold text-gray-800">
-                Mot de passe
-              </Text>
-
-              <Input
-                className="h-12 rounded-xl border-gray-300 px-4"
-                placeholder="Entrez votre mot de passe"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                autoCapitalize="none"
-                autoComplete="current-password"
-                returnKeyType="done"
-                onSubmitEditing={handleLogin}
-              />
-            </View>
-
-            <Pressable
-              className="self-end"
-              onPress={handleForgotPassword}
-            >
-              <Text className="font-semibold text-green-700">
-                Mot de passe oublié ?
-              </Text>
-            </Pressable>
-
-            <Button
-              className="mt-2 h-12 rounded-xl bg-green-600"
-              onPress={handleLogin}
-            >
-              <Text className="font-bold text-white">
-                Se connecter
-              </Text>
-            </Button>
-
-            {/* Inscription */}
-            <View className="mt-5 flex-row flex-wrap justify-center">
-              <Text className="text-gray-500">
-                Vous n'avez pas de compte ?{" "}
-              </Text>
-
-              <Pressable onPress={handleRegister}>
-                <Text className="font-bold text-green-700">
-                  Créer un compte
-                </Text>
-              </Pressable>
-            </View>
-          </View>
-
-          <View className="mt-12 items-center">
-            <Text className="text-center text-sm text-gray-400">
-              Proxi — Vos commerces de proximité.
-            </Text>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+        {/* Footer */}
+        <Text style={styles.footer}>
+          © 2026 Proxi - Le commerce local à portée de main.
+        </Text>
+      </ScrollView>
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#F4F8F3",
+  },
+
+  content: {
+    padding: 24,
+    paddingBottom: 35,
+  },
+
+  logoContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 35,
+    marginBottom: 35,
+  },
+
+  logo: {
+    width: 55,
+    height: 55,
+  },
+
+  logoText: {
+    fontSize: 30,
+    fontWeight: "bold",
+    color: "#14532D",
+    marginLeft: 10,
+  },
+
+  hero: {
+    marginBottom: 25,
+  },
+
+  badge: {
+    color: "#16834A",
+    fontSize: 14,
+    fontWeight: "bold",
+    marginBottom: 14,
+  },
+
+  title: {
+    fontSize: 36,
+    fontWeight: "bold",
+    color: "#14532D",
+    lineHeight: 44,
+    marginBottom: 15,
+  },
+
+  description: {
+    fontSize: 16,
+    color: "#718078",
+    lineHeight: 25,
+  },
+
+  illustration: {
+    backgroundColor: "#E4F1E5",
+    borderRadius: 25,
+    padding: 20,
+    alignItems: "center",
+    marginBottom: 30,
+  },
+
+  heroImage: {
+    width: 180,
+    height: 150,
+  },
+
+  illustrationText: {
+    color: "#14532D",
+    fontSize: 19,
+    fontWeight: "bold",
+    marginTop: 8,
+  },
+
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#14532D",
+    marginBottom: 17,
+  },
+
+  featureCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 18,
+    padding: 18,
+    marginBottom: 12,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  iconContainer: {
+    width: 48,
+    height: 48,
+    backgroundColor: "#E8F5EC",
+    borderRadius: 14,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  featureIcon: {
+    fontSize: 24,
+  },
+
+  featureContent: {
+    flex: 1,
+    marginLeft: 14,
+  },
+
+  featureTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#14532D",
+  },
+
+  featureDescription: {
+    color: "#87938A",
+    marginTop: 4,
+    lineHeight: 20,
+  },
+
+  primaryButton: {
+    height: 58,
+    backgroundColor: "#16834A",
+    borderRadius: 15,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 18,
+    marginBottom: 15,
+  },
+
+  primaryButtonText: {
+    color: "#FFFFFF",
+    fontSize: 17,
+    fontWeight: "bold",
+  },
+
+  secondaryButton: {
+    height: 55,
+    borderWidth: 1.5,
+    borderColor: "#16834A",
+    borderRadius: 15,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  secondaryButtonText: {
+    color: "#16834A",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+
+  footer: {
+    textAlign: "center",
+    color: "#A0ADA3",
+    fontSize: 12,
+    marginTop: 25,
+  },
+});
