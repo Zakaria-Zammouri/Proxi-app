@@ -1,6 +1,6 @@
 
 import { router } from "expo-router";
-
+import { mockDeliveries } from "@/features/livreur/data/mockDeliveries";
 import {
   View,
   Text,
@@ -46,6 +46,20 @@ const ROLES = [
   { icon: Store, label: "Commerçant" },
   { icon: Bike, label: "Livreur" },
 ];
+
+// Temporary mock data for the driver
+const activeDeliveries = mockDeliveries.filter(
+  (delivery) =>
+    delivery.status === "accepted" ||
+    delivery.status === "picked_up" ||
+    delivery.status === "on_the_way"
+).length;
+
+const pendingDeliveries = mockDeliveries.filter(
+  (delivery) => delivery.status === "new"
+).length;
+
+/// remove after data backend connection !!!!!!!!!!!!
 
 export default function HomeScreen() {
   return (
