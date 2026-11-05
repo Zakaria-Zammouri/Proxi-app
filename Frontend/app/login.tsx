@@ -1,34 +1,50 @@
-import { router } from "expo-router";
 import { useState } from "react";
+import { router } from "expo-router";
 import {
-  Alert,
-  Image,
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+  Alert,
 } from "react-native";
+import { ArrowLeft, Mail, LockKeyhole, ShoppingBag } from "lucide-react-native";
+import { COLORS, RADIUS, SPACING } from "@/lib/theme";
+import { ProxiButton, ProxiInput } from "@/components/proxi";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = () => {
-    if (email.trim() === "" || password.trim() === "") {
-      Alert.alert("Proxi", "Veuillez remplir tous les champs.");
+    if (!email.trim() || !password.trim()) {
+      Alert.alert("Champs manquants", "Veuillez renseigner votre email et votre mot de passe.");
       return;
     }
 
-    Alert.alert("Proxi", "Interface de connexion fonctionnelle !");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      Alert.alert("Email invalide", "Veuillez saisir une adresse email valide.");
+      return;
+    }
+
+    setLoading(true);
+
+    // Authentification temporaire : à connecter au backend.
+    setTimeout(() => {
+      setLoading(false);
+      Alert.alert(
+        "Interface prête",
+        "L'interface de connexion est fonctionnelle. L'authentification backend reste à intégrer."
+      );
+    }, 500);
   };
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={styles.screen}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <ScrollView
@@ -36,176 +52,167 @@ export default function LoginScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Text style={styles.backText}>← Retour</Text>
-        </TouchableOpacity>
+        <Pressable onPress={() => router.back()} style={styles.backButton}>
+          <ArrowLeft size={21} color={COLORS.text.primary} />
+        </Pressable>
 
-        <View style={styles.logoContainer}>
-          <Image
-            source={require("../assets/images/logo-proxi.png")}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-         
+        <View style={styles.brandIcon}>
+          <ShoppingBag size={29} color={COLORS.brand.primary} />
         </View>
 
-        <Text style={styles.title}>Bon retour !</Text>
+        <Text style={styles.eyebrow}>BON RETOUR !</Text>
+        <Text style={styles.title}>Content de vous revoir.</Text>
         <Text style={styles.subtitle}>
-          Connectez-vous pour continuer vos activités.
+          Connectez-vous pour retrouver votre espace Proxi.
         </Text>
 
         <View style={styles.form}>
-          <Text style={styles.label}>Adresse e-mail</Text>
-          <TextInput
-            style={styles.input}
+          <ProxiInput
+            label="Adresse email"
             placeholder="exemple@email.com"
-            placeholderTextColor="#9AA89C"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
+            autoComplete="email"
+            leftIcon={<Mail size={19} color={COLORS.text.secondary} />}
           />
 
-          <Text style={styles.label}>Mot de passe</Text>
-          <TextInput
-            style={styles.input}
+          <ProxiInput
+            label="Mot de passe"
             placeholder="Votre mot de passe"
-            placeholderTextColor="#9AA89C"
             value={password}
             onChangeText={setPassword}
             secureTextEntry
+            passwordToggle
+            autoCapitalize="none"
+            autoComplete="password"
+            leftIcon={<LockKeyhole size={19} color={COLORS.text.secondary} />}
           />
 
-          <TouchableOpacity
-            style={styles.forgotButton}
+          <Pressable
             onPress={() =>
-              Alert.alert("Proxi", "Fonctionnalité bientôt disponible.")
+              Alert.alert(
+                "Mot de passe oublié",
+                "La récupération du mot de passe sera disponible après l'intégration du backend."
+              )
             }
+            style={styles.forgotButton}
           >
             <Text style={styles.forgotText}>Mot de passe oublié ?</Text>
-          </TouchableOpacity>
+          </Pressable>
 
-          <TouchableOpacity
-            style={styles.loginButton}
+          <ProxiButton
+            title="Se connecter"
             onPress={handleLogin}
-          >
-            <Text style={styles.loginButtonText}>Se connecter</Text>
-          </TouchableOpacity>
+            loading={loading}
+            size="lg"
+          />
         </View>
 
-        <View style={styles.signupContainer}>
-          <Text style={styles.signupText}>Vous n'avez pas de compte ?</Text>
-          <TouchableOpacity onPress={() => router.push("/signup")}>
+        <View style={styles.signupRow}>
+          <Text style={styles.signupText}>Vous n'avez pas encore de compte ?</Text>
+          <Pressable onPress={() => router.push("/signup")}>
             <Text style={styles.signupLink}> S'inscrire</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
+
+        <Text style={styles.footer}>
+          En continuant, vous acceptez nos conditions d'utilisation.
+        </Text>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
-    backgroundColor: "#F4F8F3",
+    backgroundColor: COLORS.background.light,
   },
   content: {
     flexGrow: 1,
-    padding: 25,
-    justifyContent: "center",
+    paddingHorizontal: 24,
+    paddingTop: 55,
+    paddingBottom: 35,
   },
   backButton: {
-    position: "absolute",
-    top: 25,
-    left: 25,
-  },
-  backText: {
-    color: "#16834A",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  logoContainer: {
+    width: 45,
+    height: 45,
+    borderRadius: 15,
+    backgroundColor: COLORS.surface.light,
+    borderWidth: 1,
+    borderColor: COLORS.border.light,
     alignItems: "center",
-    marginBottom: 30,
+    justifyContent: "center",
+    marginBottom: 35,
   },
-  logo: {
-    width: 100,
-    height: 100,
+  brandIcon: {
+    width: 62,
+    height: 62,
+    borderRadius: 21,
+    backgroundColor: COLORS.brand.primaryLight,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 25,
   },
-  logoText: {
-    color: "#16834A",
-    fontSize: 30,
-    fontWeight: "bold",
-    marginTop: 5,
+  eyebrow: {
+    color: COLORS.brand.primary,
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 1.5,
+    marginBottom: 10,
   },
   title: {
-    fontSize: 29,
-    fontWeight: "bold",
-    color: "#14532D",
-    textAlign: "center",
+    color: COLORS.text.primary,
+    fontSize: 31,
+    lineHeight: 38,
+    fontWeight: "800",
+    letterSpacing: -0.8,
   },
   subtitle: {
-    fontSize: 15,
-    color: "#647568",
-    textAlign: "center",
+    color: COLORS.text.secondary,
+    fontSize: 14,
+    lineHeight: 22,
     marginTop: 10,
-    marginBottom: 30,
+    maxWidth: 300,
   },
   form: {
-    width: "100%",
-  },
-  label: {
-    fontSize: 14,
-    color: "#344B3A",
-    fontWeight: "600",
-    marginBottom: 9,
-    marginTop: 15,
-  },
-  input: {
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: "#DCE7DD",
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 15,
-    color: "#344B3A",
+    gap: 21,
+    marginTop: 38,
   },
   forgotButton: {
     alignSelf: "flex-end",
-    marginTop: 15,
+    marginTop: -9,
+    paddingVertical: 4,
   },
   forgotText: {
-    color: "#16834A",
-    fontWeight: "600",
+    color: COLORS.brand.primary,
     fontSize: 13,
+    fontWeight: "700",
   },
-  loginButton: {
-    backgroundColor: "#16834A",
-    padding: 17,
-    borderRadius: 12,
-    alignItems: "center",
-    marginTop: 28,
-  },
-  loginButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  signupContainer: {
+  signupRow: {
     flexDirection: "row",
     justifyContent: "center",
-    marginTop: 30,
+    alignItems: "center",
+    flexWrap: "wrap",
+    marginTop: 35,
   },
   signupText: {
-    color: "#647568",
-    fontSize: 14,
+    color: COLORS.text.secondary,
+    fontSize: 13,
   },
   signupLink: {
-    color: "#16834A",
-    fontWeight: "bold",
-    fontSize: 14,
+    color: COLORS.brand.primary,
+    fontSize: 13,
+    fontWeight: "800",
+  },
+  footer: {
+    color: COLORS.text.secondary,
+    fontSize: 11,
+    textAlign: "center",
+    lineHeight: 18,
+    marginTop: "auto",
+    paddingTop: 45,
   },
 });

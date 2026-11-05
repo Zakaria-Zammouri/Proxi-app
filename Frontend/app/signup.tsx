@@ -1,17 +1,52 @@
-import { router } from "expo-router";
 import { useState } from "react";
+import { router } from "expo-router";
 import {
-  Alert,
-  Image,
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+  Alert,
 } from "react-native";
+import {
+  ArrowLeft,
+  UserRound,
+  Mail,
+  Phone,
+  LockKeyhole,
+  ShoppingBag,
+  Store,
+  Bike,
+  Check,
+} from "lucide-react-native";
+import { COLORS, RADIUS, SPACING } from "@/lib/theme";
+import { ProxiButton, ProxiInput } from "@/components/proxi";
+
+type UserRole = "Client" | "Commerçant" | "Livreur";
+
+const ROLES: {
+  value: UserRole;
+  description: string;
+  icon: typeof ShoppingBag;
+}[] = [
+  {
+    value: "Client",
+    description: "Je souhaite commander",
+    icon: ShoppingBag,
+  },
+  {
+    value: "Commerçant",
+    description: "Je souhaite vendre",
+    icon: Store,
+  },
+  {
+    value: "Livreur",
+    description: "Je souhaite livrer",
+    icon: Bike,
+  },
+];
 
 export default function SignupScreen() {
   const [nom, setNom] = useState("");
@@ -20,7 +55,8 @@ export default function SignupScreen() {
   const [telephone, setTelephone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [role, setRole] = useState("Client");
+  const [role, setRole] = useState<UserRole>("Client");
+  const [loading, setLoading] = useState(false);
 
   const handleSignup = () => {
     if (
@@ -31,31 +67,39 @@ export default function SignupScreen() {
       !password ||
       !confirmPassword
     ) {
-      Alert.alert("Proxi", "Veuillez remplir tous les champs.");
+      Alert.alert("Champs manquants", "Veuillez remplir tous les champs.");
       return;
     }
 
-    if (!email.includes("@")) {
-      Alert.alert("Proxi", "Veuillez saisir une adresse e-mail valide.");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      Alert.alert("Email invalide", "Veuillez saisir une adresse email valide.");
       return;
     }
 
     if (password.length < 6) {
       Alert.alert(
-        "Proxi",
-        "Le mot de passe doit contenir au moins 6 caractères."
+        "Mot de passe trop court",
+        "Votre mot de passe doit contenir au moins 6 caractères."
       );
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert("Proxi", "Les mots de passe ne correspondent pas.");
+      Alert.alert(
+        "Mots de passe différents",
+        "Les deux mots de passe ne correspondent pas."
+      );
       return;
     }
 
+    setLoading(true);
+
+    // Inscription temporaire : à connecter au backend.
+    setLoading(false);
+
     Alert.alert(
-      "Proxi",
-      `Inscription validée !\nVotre rôle : ${role}`,
+      "Formulaire validé",
+      `Votre formulaire ${role.toLowerCase()} est prêt. La création réelle du compte sera disponible après l'intégration du backend.`,
       [
         {
           text: "Continuer",
@@ -67,7 +111,7 @@ export default function SignupScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={styles.screen}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <ScrollView
@@ -75,248 +119,322 @@ export default function SignupScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Text style={styles.backText}>← Retour</Text>
-        </TouchableOpacity>
+        <Pressable onPress={() => router.back()} style={styles.backButton}>
+          <ArrowLeft size={21} color={COLORS.text.primary} />
+        </Pressable>
 
-        <View style={styles.logoContainer}>
-          <Image
-            source={require("../assets/images/logo-proxi.png")}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          
+        <View style={styles.brandIcon}>
+          <UserRound size={28} color={COLORS.brand.primary} />
         </View>
 
-        <Text style={styles.title}>Créer un compte</Text>
+        <Text style={styles.eyebrow}>REJOIGNEZ PROXI</Text>
+        <Text style={styles.title}>Créons votre compte.</Text>
         <Text style={styles.subtitle}>
-          Rejoignez votre communauté Proxi.
+          Quelques informations pour commencer votre expérience Proxi.
         </Text>
 
+        <Text style={styles.sectionTitle}>Je souhaite utiliser Proxi en tant que</Text>
+
+        <View style={styles.rolesContainer}>
+          {ROLES.map((item) => {
+            const Icon = item.icon;
+            const selected = role === item.value;
+
+            return (
+              <Pressable
+                key={item.value}
+                onPress={() => setRole(item.value)}
+                style={[
+                  styles.roleCard,
+                  selected && styles.roleCardSelected,
+                ]}
+                accessibilityRole="radio"
+                accessibilityState={{ selected }}
+              >
+                <View
+                  style={[
+                    styles.roleIcon,
+                    selected && styles.roleIconSelected,
+                  ]}
+                >
+                  <Icon
+                    size={21}
+                    color={
+                      selected ? COLORS.brand.primary : COLORS.text.secondary
+                    }
+                  />
+                </View>
+
+                <View style={styles.roleTextContainer}>
+                  <Text
+                    style={[
+                      styles.roleName,
+                      selected && styles.roleNameSelected,
+                    ]}
+                  >
+                    {item.value}
+                  </Text>
+                  <Text style={styles.roleDescription}>
+                    {item.description}
+                  </Text>
+                </View>
+
+                <View
+                  style={[
+                    styles.radio,
+                    selected && styles.radioSelected,
+                  ]}
+                >
+                  {selected ? (
+                    <Check size={13} color="#FFFFFF" />
+                  ) : null}
+                </View>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        <Text style={styles.sectionTitle}>Vos informations</Text>
+
         <View style={styles.form}>
-          <Text style={styles.label}>Nom</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Votre nom"
-            placeholderTextColor="#9AA89C"
-            value={nom}
-            onChangeText={setNom}
-          />
+          <View style={styles.nameRow}>
+            <View style={styles.nameField}>
+              <ProxiInput
+                label="Nom"
+                placeholder="Votre nom"
+                value={nom}
+                onChangeText={setNom}
+                autoCapitalize="words"
+                leftIcon={<UserRound size={18} color={COLORS.text.secondary} />}
+              />
+            </View>
 
-          <Text style={styles.label}>Prénom</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Votre prénom"
-            placeholderTextColor="#9AA89C"
-            value={prenom}
-            onChangeText={setPrenom}
-          />
+            <View style={styles.nameField}>
+              <ProxiInput
+                label="Prénom"
+                placeholder="Votre prénom"
+                value={prenom}
+                onChangeText={setPrenom}
+                autoCapitalize="words"
+              />
+            </View>
+          </View>
 
-          <Text style={styles.label}>Adresse e-mail</Text>
-          <TextInput
-            style={styles.input}
+          <ProxiInput
+            label="Adresse email"
             placeholder="exemple@email.com"
-            placeholderTextColor="#9AA89C"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
+            autoComplete="email"
+            leftIcon={<Mail size={18} color={COLORS.text.secondary} />}
           />
 
-          <Text style={styles.label}>Téléphone</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Votre numéro de téléphone"
-            placeholderTextColor="#9AA89C"
+          <ProxiInput
+            label="Téléphone"
+            placeholder="06 00 00 00 00"
             value={telephone}
             onChangeText={setTelephone}
             keyboardType="phone-pad"
+            leftIcon={<Phone size={18} color={COLORS.text.secondary} />}
           />
 
-          <Text style={styles.label}>Mot de passe</Text>
-          <TextInput
-            style={styles.input}
+          <ProxiInput
+            label="Mot de passe"
             placeholder="Minimum 6 caractères"
-            placeholderTextColor="#9AA89C"
             value={password}
             onChangeText={setPassword}
             secureTextEntry
+            passwordToggle
+            autoCapitalize="none"
+            leftIcon={<LockKeyhole size={18} color={COLORS.text.secondary} />}
           />
 
-          <Text style={styles.label}>Confirmer le mot de passe</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Confirmez votre mot de passe"
-            placeholderTextColor="#9AA89C"
+          <ProxiInput
+            label="Confirmer le mot de passe"
+            placeholder="Répétez votre mot de passe"
             value={confirmPassword}
             onChangeText={setConfirmPassword}
             secureTextEntry
+            passwordToggle
+            autoCapitalize="none"
+            leftIcon={<LockKeyhole size={18} color={COLORS.text.secondary} />}
           />
 
-          <Text style={styles.label}>Choisissez votre rôle</Text>
-
-          <View style={styles.rolesContainer}>
-            {["Client", "Commerçant", "Livreur"].map((item) => (
-              <TouchableOpacity
-                key={item}
-                style={[
-                  styles.roleButton,
-                  role === item && styles.selectedRole,
-                ]}
-                onPress={() => setRole(item)}
-              >
-                <Text
-                  style={[
-                    styles.roleText,
-                    role === item && styles.selectedRoleText,
-                  ]}
-                >
-                  {item}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          <TouchableOpacity
-            style={styles.signupButton}
+          <ProxiButton
+            title="Créer mon compte"
             onPress={handleSignup}
-          >
-            <Text style={styles.signupButtonText}>Créer mon compte</Text>
-          </TouchableOpacity>
+            loading={loading}
+            size="lg"
+          />
         </View>
 
-        <View style={styles.loginContainer}>
+        <View style={styles.loginRow}>
           <Text style={styles.loginText}>Vous avez déjà un compte ?</Text>
-          <TouchableOpacity onPress={() => router.replace("/login")}>
+          <Pressable onPress={() => router.push("/login")}>
             <Text style={styles.loginLink}> Se connecter</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
+
+        <Text style={styles.footer}>
+          En créant un compte, vous acceptez nos conditions d'utilisation.
+        </Text>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
-    backgroundColor: "#F4F8F3",
+    backgroundColor: COLORS.background.light,
   },
   content: {
     flexGrow: 1,
-    padding: 25,
-    paddingTop: 65,
+    paddingHorizontal: 22,
+    paddingTop: 45,
     paddingBottom: 35,
   },
   backButton: {
-    position: "absolute",
-    top: 25,
-    left: 25,
-    zIndex: 1,
-  },
-  backText: {
-    color: "#16834A",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  logoContainer: {
+    width: 45,
+    height: 45,
+    borderRadius: 15,
+    backgroundColor: COLORS.surface.light,
+    borderWidth: 1,
+    borderColor: COLORS.border.light,
     alignItems: "center",
-    marginBottom: 20,
+    justifyContent: "center",
+    marginBottom: 27,
   },
-  logo: {
-    width: 75,
-    height: 75,
+  brandIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 19,
+    backgroundColor: COLORS.brand.primaryLight,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 21,
   },
-  logoText: {
-    color: "#16834A",
-    fontSize: 27,
-    fontWeight: "bold",
+  eyebrow: {
+    color: COLORS.brand.primary,
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 1.5,
+    marginBottom: 9,
   },
   title: {
-    fontSize: 27,
-    fontWeight: "bold",
-    color: "#14532D",
-    textAlign: "center",
+    color: COLORS.text.primary,
+    fontSize: 29,
+    lineHeight: 36,
+    fontWeight: "800",
+    letterSpacing: -0.7,
   },
   subtitle: {
-    fontSize: 14,
-    color: "#647568",
-    textAlign: "center",
+    color: COLORS.text.secondary,
+    fontSize: 13,
+    lineHeight: 21,
+    marginTop: 9,
+    marginBottom: 27,
+  },
+  sectionTitle: {
+    color: COLORS.text.primary,
+    fontSize: 15,
+    fontWeight: "800",
+    marginBottom: 14,
     marginTop: 8,
-    marginBottom: 20,
-  },
-  form: {
-    width: "100%",
-  },
-  label: {
-    fontSize: 14,
-    color: "#344B3A",
-    fontWeight: "600",
-    marginBottom: 8,
-    marginTop: 13,
-  },
-  input: {
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: "#DCE7DD",
-    borderRadius: 12,
-    padding: 15,
-    fontSize: 14,
-    color: "#344B3A",
   },
   rolesContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 5,
+    gap: 10,
+    marginBottom: 27,
   },
-  roleButton: {
-    flex: 1,
-    paddingVertical: 13,
-    marginHorizontal: 3,
-    borderWidth: 1,
-    borderColor: "#DCE7DD",
-    borderRadius: 10,
+  roleCard: {
+    minHeight: 73,
+    flexDirection: "row",
     alignItems: "center",
+    padding: 12,
+    borderRadius: RADIUS.lg,
+    borderWidth: 1,
+    borderColor: COLORS.border.light,
+    backgroundColor: COLORS.surface.light,
+    gap: 12,
+  },
+  roleCardSelected: {
+    borderColor: COLORS.brand.primary,
+    backgroundColor: COLORS.brand.primaryLight,
+  },
+  roleIcon: {
+    width: 43,
+    height: 43,
+    borderRadius: 14,
+    backgroundColor: "#F1F3F0",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  roleIconSelected: {
     backgroundColor: "#FFFFFF",
   },
-  selectedRole: {
-    backgroundColor: "#16834A",
-    borderColor: "#16834A",
+  roleTextContainer: {
+    flex: 1,
+    gap: 4,
   },
-  roleText: {
-    color: "#344B3A",
-    fontSize: 12,
-    fontWeight: "600",
+  roleName: {
+    color: COLORS.text.primary,
+    fontSize: 14,
+    fontWeight: "700",
   },
-  selectedRoleText: {
-    color: "#FFFFFF",
+  roleNameSelected: {
+    color: COLORS.brand.primary,
   },
-  signupButton: {
-    backgroundColor: "#16834A",
-    padding: 17,
-    borderRadius: 12,
+  roleDescription: {
+    color: COLORS.text.secondary,
+    fontSize: 11,
+  },
+  radio: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 1.5,
+    borderColor: COLORS.border.light,
     alignItems: "center",
-    marginTop: 28,
-  },
-  signupButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  loginContainer: {
-    flexDirection: "row",
     justifyContent: "center",
-    marginTop: 25,
+  },
+  radioSelected: {
+    backgroundColor: COLORS.brand.primary,
+    borderColor: COLORS.brand.primary,
+  },
+  form: {
+    gap: 19,
+  },
+  nameRow: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  nameField: {
+    flex: 1,
+    minWidth: 0,
+  },
+  loginRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    flexWrap: "wrap",
+    marginTop: 30,
   },
   loginText: {
-    color: "#647568",
+    color: COLORS.text.secondary,
     fontSize: 13,
   },
   loginLink: {
-    color: "#16834A",
-    fontWeight: "bold",
+    color: COLORS.brand.primary,
     fontSize: 13,
+    fontWeight: "800",
+  },
+  footer: {
+    color: COLORS.text.secondary,
+    fontSize: 11,
+    textAlign: "center",
+    lineHeight: 18,
+    marginTop: 24,
   },
 });

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Minimal Template
 
 This is a [React Native](https://reactnative.dev/) project built with [Expo](https://expo.dev/) and [React Native Reusables](https://reactnativereusables.com).
@@ -73,5 +72,3 @@ The easiest way to deploy your app is with [Expo Application Services (EAS)](htt
 
 If you enjoy using React Native Reusables, please consider giving it a ⭐ on [GitHub](https://github.com/founded-labs/react-native-reusables). Your support means a lot!
 =======
-# -Project-Reacte-
->>>>>>> 640d4374b5134d09baaec3d1324f34c51133e984
