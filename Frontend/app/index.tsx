@@ -1,301 +1,533 @@
+
+import { router } from "expo-router";
+
 import {
   View,
   Text,
-  Image,
-  ScrollView,
-  Pressable,
   StyleSheet,
+  Image,
+  Pressable,
+  ScrollView,
 } from "react-native";
 
-import { StatusBar as ExpoStatusBar } from "expo-status-bar";
-import { Stack, router } from "expo-router";
+import {
+  ArrowRight,
+  ShoppingBag,
+  Store,
+  Bike,
+  MapPin,
+  ShieldCheck,
+  Clock3,
+} from "lucide-react-native";
 
-export default function WelcomeScreen() {
+import { COLORS, RADIUS, SHADOWS } from "@/lib/theme";
+import { ProxiButton } from "@/components/proxi";
+
+const FEATURES = [
+  {
+    icon: ShoppingBag,
+    title: "Tout à portée de main",
+    description: "Retrouve les commerces et produits près de chez toi.",
+  },
+  {
+    icon: Clock3,
+    title: "Gagne du temps",
+    description: "Commande facilement et suis tes commandes.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Un service de proximité",
+    description: "Une expérience simple, pratique et rassurante.",
+  },
+];
+
+const ROLES = [
+  { icon: ShoppingBag, label: "Client" },
+  { icon: Store, label: "Commerçant" },
+  { icon: Bike, label: "Livreur" },
+];
+
+export default function HomeScreen() {
   return (
-    <>
-      <Stack.Screen options={{ headerShown: false }} />
-
-      <ExpoStatusBar style="dark" />
-
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Logo */}
-        <View style={styles.logoContainer}>
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
+      <View style={styles.header}>
+        <View style={styles.brand}>
           <Image
             source={require("../assets/images/logo-proxi.png")}
             style={styles.logo}
             resizeMode="contain"
           />
-          
+
+          <Text style={styles.brandName}>proxi</Text>
         </View>
 
-        {/* Présentation */}
-        <View style={styles.hero}>
-          <Text style={styles.badge}>
-            BIENVENUE CHEZ PROXI
-          </Text>
+        <Pressable
+          onPress={() => router.push("/login")}
+          style={styles.loginLink}
+        >
+          <Text style={styles.loginLinkText}>Connexion</Text>
+          <ArrowRight size={15} color={COLORS.brand.primary} />
+        </Pressable>
+      </View>
 
-          <Text style={styles.title}>
-            Vos courses,{"\n"}
-            à deux pas de{"\n"}
-            chez vous.
-          </Text>
-
-         
+      <View style={styles.hero}>
+        <View style={styles.locationBadge}>
+          <MapPin size={14} color={COLORS.brand.primary} />
+          <Text style={styles.locationText}>La proximité, autrement</Text>
         </View>
 
-        {/* Illustration */}
-        <View style={styles.illustration}>
-          <Image
-            source={require("../assets/images/logo-proxi.png")}
-            style={styles.heroImage}
-            resizeMode="contain"
+        <Text style={styles.title}>
+          Vos commerces{"\n"}
+          <Text style={styles.titleAccent}>près de vous.</Text>
+        </Text>
+
+        <Text style={styles.subtitle}>
+          Découvrez les boutiques de votre quartier, commandez vos produits
+          préférés et faites-vous livrer simplement.
+        </Text>
+
+        <View style={styles.heroActions}>
+          <ProxiButton
+            title="Commencer"
+            onPress={() => router.push("/signup")}
+            size="lg"
           />
 
-          <Text style={styles.illustrationText}>
-            Le commerce local, simplifié.
-          </Text>
+          <Pressable
+            onPress={() => router.push("/login")}
+            style={styles.secondaryAction}
+          >
+            <Text style={styles.secondaryActionText}>
+              J'ai déjà un compte
+            </Text>
+            <ArrowRight size={17} color={COLORS.brand.primary} />
+          </Pressable>
         </View>
 
-      
-       
+        <View style={styles.heroVisual}>
+          <View style={styles.visualCircle}>
+            <View style={styles.visualMainIcon}>
+              <ShoppingBag size={54} color={COLORS.brand.primary} />
+            </View>
 
-        {/* Clients */}
-        <View style={styles.featureCard}>
-          <View style={styles.iconContainer}>
-            <Text style={styles.featureIcon}>🛍️</Text>
+            <View style={styles.floatingIconOne}>
+              <Store size={22} color={COLORS.brand.primary} />
+            </View>
+
+            <View style={styles.floatingIconTwo}>
+              <Bike size={22} color={COLORS.brand.primary} />
+            </View>
+
+            <View style={styles.floatingIconThree}>
+              <MapPin size={20} color={COLORS.brand.accent} />
+            </View>
           </View>
 
-          <View style={styles.featureContent}>
-            <Text style={styles.featureTitle}>
-              Pour les clients
+          <View style={styles.visualCaption}>
+            <Text style={styles.visualCaptionTitle}>
+              Votre quartier, à portée de clic.
             </Text>
-            <Text style={styles.featureDescription}>
-              Commandez facilement vos produits préférés.
-            </Text>
-          </View>
-        </View>
-
-        {/* Commerçants */}
-        <View style={styles.featureCard}>
-          <View style={styles.iconContainer}>
-            <Text style={styles.featureIcon}>🏪</Text>
-          </View>
-
-          <View style={styles.featureContent}>
-            <Text style={styles.featureTitle}>
-              Pour les commerçants
-            </Text>
-            <Text style={styles.featureDescription}>
-              Développez votre activité et trouvez de nouveaux clients.
-            </Text>
-          </View>
-        </View>
-
-        {/* Livreurs */}
-        <View style={styles.featureCard}>
-          <View style={styles.iconContainer}>
-            <Text style={styles.featureIcon}>🛵</Text>
-          </View>
-
-          <View style={styles.featureContent}>
-            <Text style={styles.featureTitle}>
-              Pour les livreurs
-            </Text>
-            <Text style={styles.featureDescription}>
-              Effectuez des livraisons et gagnez de l'argent.
+            <Text style={styles.visualCaptionText}>
+              Achetez local. Vivez pratique.
             </Text>
           </View>
         </View>
+      </View>
 
-        {/* Inscription */}
-        <Pressable
-          style={styles.primaryButton}
-          onPress={() => router.push("/signup")}
-        >
-          <Text style={styles.primaryButtonText}>
-            Commencer
-          </Text>
-        </Pressable>
-
-        {/* Connexion */}
-        <Pressable
-          style={styles.secondaryButton}
-          onPress={() => router.push("/login")}
-        >
-          <Text style={styles.secondaryButtonText}>
-            J'ai déjà un compte
-          </Text>
-        </Pressable>
-
-        {/* Footer */}
-        <Text style={styles.footer}>
-          © 2026 Proxi - Le commerce local à portée de main.
+      <View style={styles.section}>
+        <Text style={styles.sectionEyebrow}>POURQUOI PROXI ?</Text>
+        <Text style={styles.sectionTitle}>
+          Le commerce local,{"\n"}en toute simplicité.
         </Text>
-      </ScrollView>
-    </>
+
+        <View style={styles.features}>
+          {FEATURES.map((feature) => {
+            const Icon = feature.icon;
+
+            return (
+              <View key={feature.title} style={styles.featureCard}>
+                <View style={styles.featureIcon}>
+                  <Icon size={22} color={COLORS.brand.primary} />
+                </View>
+
+                <View style={styles.featureText}>
+                  <Text style={styles.featureTitle}>{feature.title}</Text>
+                  <Text style={styles.featureDescription}>
+                    {feature.description}
+                  </Text>
+                </View>
+              </View>
+            );
+          })}
+        </View>
+      </View>
+
+      <View style={styles.rolesSection}>
+        <Text style={styles.sectionEyebrow}>UNE APP, TROIS ESPACES</Text>
+        <Text style={styles.sectionTitle}>
+          Proxi s'adapte à vous.
+        </Text>
+
+        <View style={styles.roles}>
+          {ROLES.map((role) => {
+            const Icon = role.icon;
+
+            return (
+              <View key={role.label} style={styles.roleItem}>
+                <View style={styles.roleIcon}>
+                  <Icon size={21} color={COLORS.brand.primary} />
+                </View>
+                <Text style={styles.roleLabel}>{role.label}</Text>
+              </View>
+            );
+          })}
+        </View>
+      </View>
+
+      <View style={styles.bottomCta}>
+        <Text style={styles.bottomTitle}>Prêt à découvrir Proxi ?</Text>
+        <Text style={styles.bottomDescription}>
+          Rejoignez une nouvelle façon de consommer local.
+        </Text>
+
+        <ProxiButton
+          title="Créer mon compte"
+          onPress={() => router.push("/signup")}
+          size="lg"
+        />
+      </View>
+
+      <Text style={styles.footer}>
+        © 2026 Proxi. Tous droits réservés.
+      </Text>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
-    backgroundColor: "#F4F8F3",
+    backgroundColor: COLORS.background.light,
   },
 
   content: {
-    padding: 24,
-    paddingBottom: 35,
+    paddingHorizontal: 22,
+    paddingTop: 48,
+    paddingBottom: 30,
   },
 
-  logoContainer: {
+  header: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 35,
-    marginBottom: 35,
+    justifyContent: "space-between",
+    marginBottom: 38,
+  },
+
+  brand: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 9,
   },
 
   logo: {
-    width: 55,
-    height: 55,
+    width: 44,
+    height: 44,
   },
 
-  logoText: {
+  brandName: {
+    color: COLORS.brand.primary,
     fontSize: 30,
-    fontWeight: "bold",
-    color: "#14532D",
-    marginLeft: 10,
+    fontWeight: "800",
+    letterSpacing: -1.2,
+  },
+
+  loginLink: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    paddingVertical: 10,
+  },
+
+  loginLinkText: {
+    color: COLORS.brand.primary,
+    fontSize: 14,
+    fontWeight: "700",
   },
 
   hero: {
-    marginBottom: 25,
+    alignItems: "flex-start",
   },
 
-  badge: {
-    color: "#16834A",
-    fontSize: 14,
-    fontWeight: "bold",
-    marginBottom: 14,
+  locationBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 7,
+    backgroundColor: COLORS.brand.primaryLight,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: RADIUS.full,
+    marginBottom: 22,
+  },
+
+  locationText: {
+    color: COLORS.brand.primary,
+    fontSize: 12,
+    fontWeight: "700",
   },
 
   title: {
-    fontSize: 36,
-    fontWeight: "bold",
-    color: "#14532D",
-    lineHeight: 44,
-    marginBottom: 15,
+    color: COLORS.text.primary,
+    fontSize: 39,
+    lineHeight: 46,
+    fontWeight: "800",
+    letterSpacing: -1.5,
   },
 
-  description: {
-    fontSize: 16,
-    color: "#718078",
-    lineHeight: 25,
+  titleAccent: {
+    color: COLORS.brand.primary,
   },
 
-  illustration: {
-    backgroundColor: "#E4F1E5",
-    borderRadius: 25,
-    padding: 20,
+  subtitle: {
+    color: COLORS.text.secondary,
+    fontSize: 15,
+    lineHeight: 24,
+    marginTop: 16,
+    maxWidth: 340,
+  },
+
+  heroActions: {
+    width: "100%",
+    marginTop: 25,
+    gap: 13,
+  },
+
+  secondaryAction: {
+    height: 45,
+    flexDirection: "row",
     alignItems: "center",
-    marginBottom: 30,
+    justifyContent: "center",
+    gap: 8,
   },
 
-  heroImage: {
-    width: 180,
-    height: 150,
+  secondaryActionText: {
+    color: COLORS.brand.primary,
+    fontSize: 14,
+    fontWeight: "700",
   },
 
-  illustrationText: {
-    color: "#14532D",
-    fontSize: 19,
-    fontWeight: "bold",
-    marginTop: 8,
+  heroVisual: {
+    width: "100%",
+    minHeight: 285,
+    marginTop: 30,
+    borderRadius: 28,
+    backgroundColor: "#EAF2EC",
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+  },
+
+  visualCircle: {
+    width: 190,
+    height: 190,
+    borderRadius: 95,
+    backgroundColor: "#D7E9DC",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  visualMainIcon: {
+    width: 112,
+    height: 112,
+    borderRadius: 35,
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+    ...SHADOWS.card,
+  },
+
+  floatingIconOne: {
+    position: "absolute",
+    top: 7,
+    right: 0,
+    width: 49,
+    height: 49,
+    borderRadius: 17,
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+    ...SHADOWS.card,
+  },
+
+  floatingIconTwo: {
+    position: "absolute",
+    bottom: 10,
+    left: -2,
+    width: 49,
+    height: 49,
+    borderRadius: 17,
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+    ...SHADOWS.card,
+  },
+
+  floatingIconThree: {
+    position: "absolute",
+    bottom: 0,
+    right: 3,
+    width: 43,
+    height: 43,
+    borderRadius: 15,
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+    ...SHADOWS.card,
+  },
+
+  visualCaption: {
+    alignItems: "center",
+    marginTop: 20,
+  },
+
+  visualCaptionTitle: {
+    color: COLORS.text.primary,
+    fontSize: 15,
+    fontWeight: "700",
+  },
+
+  visualCaptionText: {
+    color: COLORS.text.secondary,
+    fontSize: 12,
+    marginTop: 5,
+  },
+
+  section: {
+    marginTop: 48,
+  },
+
+  sectionEyebrow: {
+    color: COLORS.brand.primary,
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 1.4,
+    marginBottom: 10,
   },
 
   sectionTitle: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#14532D",
-    marginBottom: 17,
+    color: COLORS.text.primary,
+    fontSize: 25,
+    lineHeight: 32,
+    fontWeight: "800",
+    letterSpacing: -0.6,
+  },
+
+  features: {
+    gap: 12,
+    marginTop: 22,
   },
 
   featureCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 18,
-    padding: 18,
-    marginBottom: 12,
     flexDirection: "row",
     alignItems: "center",
-  },
-
-  iconContainer: {
-    width: 48,
-    height: 48,
-    backgroundColor: "#E8F5EC",
-    borderRadius: 14,
-    justifyContent: "center",
-    alignItems: "center",
+    gap: 15,
+    padding: 16,
+    borderRadius: RADIUS.lg,
+    backgroundColor: COLORS.surface.light,
+    borderWidth: 1,
+    borderColor: COLORS.border.light,
   },
 
   featureIcon: {
-    fontSize: 24,
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: COLORS.brand.primaryLight,
+    alignItems: "center",
+    justifyContent: "center",
   },
 
-  featureContent: {
+  featureText: {
     flex: 1,
-    marginLeft: 14,
+    gap: 5,
   },
 
   featureTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#14532D",
+    color: COLORS.text.primary,
+    fontSize: 14,
+    fontWeight: "700",
   },
 
   featureDescription: {
-    color: "#87938A",
-    marginTop: 4,
+    color: COLORS.text.secondary,
+    fontSize: 12,
+    lineHeight: 18,
+  },
+
+  rolesSection: {
+    marginTop: 45,
+  },
+
+  roles: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 9,
+    marginTop: 22,
+  },
+
+  roleItem: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: 17,
+    borderRadius: RADIUS.lg,
+    backgroundColor: COLORS.surface.light,
+    borderWidth: 1,
+    borderColor: COLORS.border.light,
+    gap: 9,
+  },
+
+  roleIcon: {
+    width: 43,
+    height: 43,
+    borderRadius: 14,
+    backgroundColor: COLORS.brand.primaryLight,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  roleLabel: {
+    color: COLORS.text.primary,
+    fontSize: 11,
+    fontWeight: "700",
+  },
+
+  bottomCta: {
+    marginTop: 45,
+    padding: 22,
+    borderRadius: 24,
+    backgroundColor: COLORS.brand.primaryLight,
+    gap: 13,
+  },
+
+  bottomTitle: {
+    color: COLORS.text.primary,
+    fontSize: 21,
+    fontWeight: "800",
+  },
+
+  bottomDescription: {
+    color: COLORS.text.secondary,
+    fontSize: 13,
     lineHeight: 20,
-  },
-
-  primaryButton: {
-    height: 58,
-    backgroundColor: "#16834A",
-    borderRadius: 15,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 18,
-    marginBottom: 15,
-  },
-
-  primaryButtonText: {
-    color: "#FFFFFF",
-    fontSize: 17,
-    fontWeight: "bold",
-  },
-
-  secondaryButton: {
-    height: 55,
-    borderWidth: 1.5,
-    borderColor: "#16834A",
-    borderRadius: 15,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  secondaryButtonText: {
-    color: "#16834A",
-    fontSize: 16,
-    fontWeight: "bold",
   },
 
   footer: {
     textAlign: "center",
-    color: "#A0ADA3",
-    fontSize: 12,
-    marginTop: 25,
+    color: COLORS.text.secondary,
+    fontSize: 11,
+    marginTop: 30,
   },
 });
