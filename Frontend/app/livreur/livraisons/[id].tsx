@@ -1,487 +1,146 @@
+import { useCallback, useState } from "react";
+import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { ArrowLeft, CheckCircle2, MapPin, Navigation, Package, Phone, Store, UserRound, XCircle } from "lucide-react-native";
+import { COLORS, RADIUS, SPACING } from "@/lib/theme";
+import { getDeliveryById, updateDeliveryStatus } from "@/features/livreur/data/mockDeliveries";
+import type { Delivery, DeliveryStatus } from "@/features/livreur/types/deliveries";
+import { PrimaryButton, StatusPill, SurfaceCard } from "@/features/livreur/components/LivreurUI";
 
-import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-} from "react-native";
-import { useLocalSearchParams, Stack } from "expo-router";
-import {
-  MapPin,
-  Phone,
-  Package,
-  Store,
-  CheckCircle2,
-  Clock3,
-  Navigation,
-} from "lucide-react-native";
-
-import {
-  COLORS,
-  SPACING,
-  RADIUS,
-} from "@/lib/theme";
-
-import { ProxiCard } from "@/components/proxi/ProxiCard";
-import { ProxiBadge } from "@/components/proxi/ProxiBadge";
-import { getDeliveryById } from "@/features/livreur/data/mockDeliveries";
-import type { DeliveryStatus } from "@/features/livreur/types/deliveries";
-
-const statusConfig: Record<
-  DeliveryStatus,
-  { label: string; variant: "success" | "warning" | "error" | "info" | "neutral" | "brand" }
-> = {
-  new: { label: "Nouvelle", variant: "info" },
-  accepted: { label: "Acceptée", variant: "brand" },
-  picked_up: { label: "Récupérée", variant: "warning" },
-  on_the_way: { label: "En cours de livraison", variant: "warning" },
-  delivered: { label: "Livrée", variant: "success" },
-  cancelled: { label: "Annulée", variant: "error" },
+const nextStep: Partial<Record<DeliveryStatus, { status: DeliveryStatus; label: string }>> = {
+  new: { status: "accepted", label: "Accepter la livraison" },
+  accepted: { status: "picked_up", label: "Confirmer la récupération" },
+  picked_up: { status: "on_the_way", label: "Démarrer la livraison" },
+  on_the_way: { status: "delivered", label: "Confirmer la livraison" },
 };
-
-const steps: { status: DeliveryStatus; label: string }[] = [
-  { status: "new", label: "Nouvelle commande" },
-  { status: "accepted", label: "Commande acceptée" },
-  { status: "picked_up", label: "Commande récupérée" },
-  { status: "on_the_way", label: "En cours de livraison" },
-  { status: "delivered", label: "Commande livrée" },
-];
-
-const statusOrder: DeliveryStatus[] = [
-  "new",
-  "accepted",
-  "picked_up",
-  "on_the_way",
-  "delivered",
-];
 
 export default function DeliveryDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const delivery = getDeliveryById(id);
+  const router = useRouter();
+  const [delivery, setDelivery] = useState<Delivery | undefined>(getDeliveryById(String(id)));
+
+  useFocusEffect(useCallback(() => { setDelivery(getDeliveryById(String(id))); }, [id]));
 
   if (!delivery) {
-    return (
-      <View style={styles.notFound}>
-        <Package size={40} color={COLORS.text.secondary} />
-        <Text style={styles.notFoundTitle}>
-          Livraison introuvable
-        </Text>
-        <Text style={styles.notFoundText}>
-          Cette commande n'existe pas dans nos données.
-        </Text>
-      </View>
-    );
+    return <View style={styles.notFound}><Text style={styles.notFoundText}>Cette livraison est introuvable.</Text></View>;
   }
 
-  const currentIndex = statusOrder.indexOf(delivery.status);
-  const isCancelled = delivery.status === "cancelled";
+  const step = nextStep[delivery.status];
+
+  function confirmStatusChange() {
+    if (!step) return;
+    Alert.alert("Confirmer l'action", `Passer la commande au statut « ${step.label} » ?`, [
+      { text: "Retour", style: "cancel" },
+      { text: "Confirmer", onPress: () => setDelivery(updateDeliveryStatus(delivery!.id, step.status)) },
+    ]);
+  }
+
+  function cancelDelivery() {
+    if (delivery!.status !== "new" && delivery!.status !== "accepted") return;
+    Alert.alert("Annuler la livraison", "Voulez-vous vraiment annuler cette livraison ?", [
+      { text: "Garder", style: "cancel" },
+      { text: "Annuler la commande", style: "destructive", onPress: () => setDelivery(updateDeliveryStatus(delivery!.id, "cancelled")) },
+    ]);
+  }
+
+  async function callCustomer() {
+    try { await Linking.openURL(`tel:${delivery!.customer.phone}`); } catch { Alert.alert("Appel indisponible", "Votre appareil ne permet pas de lancer cet appel."); }
+  }
+
+  async function openDestination() {
+    const address = encodeURIComponent(`${delivery!.destination.address}, ${delivery!.destination.city}, Morocco`);
+    try { await Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${address}`); } catch { Alert.alert("Navigation indisponible", "Impossible d'ouvrir l'application de cartes."); }
+  }
 
   return (
     <>
-      <Stack.Screen options={{ title: "Détails de livraison" }} />
+      <Stack.Screen options={{ headerShown: false }} />
+      <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+        <Pressable style={styles.backButton} onPress={() => router.back()}><ArrowLeft size={19} color={COLORS.text.primary} /><Text style={styles.backText}>Retour aux livraisons</Text></Pressable>
+        <View style={styles.heading}><View style={styles.headingCopy}><Text style={styles.eyebrow}>DÉTAIL DE LA COMMANDE</Text><Text style={styles.reference}>{delivery.reference}</Text></View><StatusPill status={delivery.status} /></View>
 
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* ORDER HEADER */}
-        <ProxiCard style={styles.headerCard}>
-          <View style={styles.headerTop}>
-            <Text style={styles.reference}>
-              {delivery.reference}
-            </Text>
-            <ProxiBadge
-              label={statusConfig[delivery.status].label}
-              variant={statusConfig[delivery.status].variant}
-            />
-          </View>
+        <SurfaceCard>
+          <View style={styles.cardHeading}><UserRound size={18} color={COLORS.brand.primary} /><Text style={styles.cardTitle}>Informations client</Text></View>
+          <Text style={styles.personName}>{delivery.customer.name}</Text>
+          <View style={styles.inlineInfo}><Phone size={15} color={COLORS.text.secondary} /><Text style={styles.mutedText}>{delivery.customer.phone}</Text></View>
+          <Pressable onPress={callCustomer} style={styles.callButton}><Phone size={16} color={COLORS.brand.primary} /><Text style={styles.callText}>Appeler le client</Text></Pressable>
+        </SurfaceCard>
 
-          <Text style={styles.total}>
-            {delivery.total} MAD
-          </Text>
-          <Text style={styles.date}>
-            Commande créée à {delivery.createdAt}
-          </Text>
-        </ProxiCard>
+        <SurfaceCard>
+          <View style={styles.cardHeading}><Store size={18} color={COLORS.brand.primary} /><Text style={styles.cardTitle}>Point de récupération</Text></View>
+          <Text style={styles.personName}>{delivery.pickup.name}</Text>
+          <View style={styles.inlineInfo}><MapPin size={15} color={COLORS.text.secondary} /><Text style={styles.mutedText}>{delivery.pickup.address}</Text></View>
+        </SurfaceCard>
 
-        {/* PROGRESS */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            Suivi de la livraison
-          </Text>
+        <SurfaceCard>
+          <View style={styles.cardHeading}><Navigation size={18} color={COLORS.status.success} /><Text style={styles.cardTitle}>Adresse de livraison</Text></View>
+          <Text style={styles.personName}>{delivery.destination.address}</Text>
+          <Text style={styles.mutedText}>{delivery.destination.city}</Text>
+          <Pressable onPress={openDestination} style={styles.callButton}><Navigation size={16} color={COLORS.brand.primary} /><Text style={styles.callText}>Ouvrir dans Maps</Text></Pressable>
+        </SurfaceCard>
 
-          <ProxiCard style={styles.progressCard}>
-            {isCancelled ? (
-              <ProxiBadge label="Commande annulée" variant="error" />
-            ) : (
-              steps.map((step, index) => {
-                const completed = index <= currentIndex;
-                const current = index === currentIndex;
+        <SurfaceCard>
+          <View style={styles.cardHeading}><Package size={18} color={COLORS.brand.primary} /><Text style={styles.cardTitle}>Articles commandés</Text></View>
+          {delivery.items.map((item, index) => (
+            <View key={`${item.name}-${index}`} style={styles.itemRow}><View style={styles.itemCopy}><Text style={styles.itemName}>{item.name}</Text><Text style={styles.mutedText}>Quantité : {item.quantity}</Text></View><Text style={styles.itemPrice}>{item.quantity * item.price} MAD</Text></View>
+          ))}
+          <View style={styles.separator} />
+          <View style={styles.totalRow}><Text style={styles.mutedText}>Sous-total articles</Text><Text style={styles.mutedText}>{delivery.total - delivery.deliveryFee} MAD</Text></View>
+          <View style={styles.totalRow}><Text style={styles.mutedText}>Frais de livraison</Text><Text style={styles.mutedText}>{delivery.deliveryFee} MAD</Text></View>
+          <View style={styles.totalRow}><Text style={styles.totalLabel}>Total commande</Text><Text style={styles.totalValue}>{delivery.total} MAD</Text></View>
+        </SurfaceCard>
 
-                return (
-                  <View key={step.status} style={styles.step}>
-                    <View style={styles.stepIndicator}>
-                      {completed ? (
-                        <CheckCircle2
-                          size={21}
-                          color={COLORS.brand.primary}
-                        />
-                      ) : (
-                        <View style={styles.pendingDot} />
-                      )}
+        {delivery.notes ? <SurfaceCard><Text style={styles.cardTitle}>Instructions</Text><Text style={styles.mutedText}>{delivery.notes}</Text></SurfaceCard> : null}
 
-                      {index !== steps.length - 1 && (
-                        <View
-                          style={[
-                            styles.stepLine,
-                            completed && styles.completedLine,
-                          ]}
-                        />
-                      )}
-                    </View>
+        {delivery.status === "on_the_way" ? (
+          <View style={styles.trackingNotice}><Navigation size={20} color={COLORS.brand.primary} /><View style={{ flex: 1 }}><Text style={styles.trackingTitle}>Livraison en cours</Text><Text style={styles.mutedText}>Le suivi GPS en temps réel sera activé lorsque le backend et le partage de position seront intégrés.</Text></View></View>
+        ) : null}
 
-                    <Text
-                      style={[
-                        styles.stepLabel,
-                        current && styles.currentStep,
-                      ]}
-                    >
-                      {step.label}
-                    </Text>
-                  </View>
-                );
-              })
-            )}
-          </ProxiCard>
-        </View>
-
-        {/* CUSTOMER */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Client</Text>
-
-          <ProxiCard style={styles.infoCard}>
-            <View style={styles.infoHeader}>
-              <View style={styles.iconContainer}>
-                <Phone size={20} color={COLORS.brand.primary} />
-              </View>
-
-              <View style={styles.infoText}>
-                <Text style={styles.infoTitle}>
-                  {delivery.customer.name}
-                </Text>
-                <Text style={styles.infoSubtitle}>
-                  {delivery.customer.phone}
-                </Text>
-              </View>
-            </View>
-          </ProxiCard>
-        </View>
-
-        {/* PICKUP */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Point de récupération</Text>
-
-          <ProxiCard style={styles.infoCard}>
-            <View style={styles.infoHeader}>
-              <View style={styles.iconContainer}>
-                <Store size={20} color={COLORS.brand.primary} />
-              </View>
-
-              <View style={styles.infoText}>
-                <Text style={styles.infoTitle}>
-                  {delivery.pickup.name}
-                </Text>
-                <Text style={styles.infoSubtitle}>
-                  {delivery.pickup.address}
-                </Text>
-              </View>
-            </View>
-          </ProxiCard>
-        </View>
-
-        {/* DESTINATION */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Destination</Text>
-
-          <ProxiCard style={styles.infoCard}>
-            <View style={styles.infoHeader}>
-              <View style={[styles.iconContainer, styles.destinationIcon]}>
-                <MapPin size={20} color={COLORS.status.warning} />
-              </View>
-
-              <View style={styles.infoText}>
-                <Text style={styles.infoTitle}>
-                  {delivery.destination.address}
-                </Text>
-                <Text style={styles.infoSubtitle}>
-                  {delivery.destination.city}
-                </Text>
-              </View>
-            </View>
-          </ProxiCard>
-        </View>
-
-        {/* ITEMS */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Détails de la commande</Text>
-
-          <ProxiCard style={styles.itemsCard}>
-            {delivery.items.map((item, index) => (
-              <View key={index} style={styles.itemRow}>
-                <View style={styles.itemNameContainer}>
-                  <Text style={styles.itemQuantity}>
-                    {item.quantity}x
-                  </Text>
-                  <Text style={styles.itemName}>
-                    {item.name}
-                  </Text>
-                </View>
-
-                <Text style={styles.itemPrice}>
-                  {item.price * item.quantity} MAD
-                </Text>
-              </View>
-            ))}
-
-            <View style={styles.separator} />
-
-            <View style={styles.itemRow}>
-              <Text style={styles.feeLabel}>Frais de livraison</Text>
-              <Text style={styles.itemPrice}>
-                {delivery.deliveryFee} MAD
-              </Text>
-            </View>
-
-            <View style={styles.itemRow}>
-              <Text style={styles.totalLabel}>Total</Text>
-              <Text style={styles.totalLabel}>
-                {delivery.total} MAD
-              </Text>
-            </View>
-          </ProxiCard>
-        </View>
-
-        {/* NOTES */}
-        {delivery.notes && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Instructions</Text>
-            <ProxiCard style={styles.notesCard}>
-              <Text style={styles.notesText}>
-                {delivery.notes}
-              </Text>
-            </ProxiCard>
-          </View>
-        )}
-
-        {/* LOCATION PLACEHOLDER */}
-        {delivery.status === "on_the_way" && (
-          <ProxiCard style={styles.trackingCard}>
-            <Navigation
-              size={24}
-              color={COLORS.brand.primary}
-            />
-            <View style={styles.infoText}>
-              <Text style={styles.infoTitle}>
-                Suivi GPS
-              </Text>
-              <Text style={styles.infoSubtitle}>
-                Le partage de position sera disponible
-                lorsque le système de géolocalisation sera intégré.
-              </Text>
-            </View>
-          </ProxiCard>
-        )}
+        {step ? <PrimaryButton label={step.label} icon={<CheckCircle2 size={19} color="#FFFFFF" />} onPress={confirmStatusChange} /> : null}
+        {delivery.status === "new" || delivery.status === "accepted" ? (
+          <Pressable onPress={cancelDelivery} style={styles.cancelButton}><XCircle size={17} color={COLORS.status.error} /><Text style={styles.cancelText}>Annuler cette livraison</Text></Pressable>
+        ) : null}
+        {delivery.status === "delivered" ? <View style={styles.terminalNotice}><CheckCircle2 size={20} color={COLORS.status.success} /><Text style={styles.terminalText}>Livraison terminée avec succès.</Text></View> : null}
+        {delivery.status === "cancelled" ? <View style={styles.cancelledNotice}><XCircle size={20} color={COLORS.status.error} /><Text style={styles.cancelledText}>Cette livraison a été annulée.</Text></View> : null}
+        <Text style={styles.disclaimer}>Mode démonstration : les changements de statut sont conservés uniquement en mémoire sur cet appareil.</Text>
       </ScrollView>
     </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background.light,
-  },
-  content: {
-    padding: SPACING.lg,
-    paddingBottom: SPACING["4xl"],
-    gap: SPACING.lg,
-  },
-  notFound: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: COLORS.background.light,
-    gap: SPACING.md,
-    padding: SPACING.xl,
-  },
-  notFoundTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: COLORS.text.primary,
-  },
-  notFoundText: {
-    fontSize: 13,
-    color: COLORS.text.secondary,
-    textAlign: "center",
-  },
-  headerCard: {
-    gap: SPACING.sm,
-  },
-  headerTop: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: SPACING.sm,
-  },
-  reference: {
-    fontSize: 12,
-    color: COLORS.text.secondary,
-  },
-  total: {
-    fontSize: 30,
-    fontWeight: "700",
-    color: COLORS.brand.primary,
-  },
-  date: {
-    fontSize: 12,
-    color: COLORS.text.secondary,
-  },
-  section: {
-    gap: SPACING.sm,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: COLORS.text.primary,
-  },
-  progressCard: {
-    gap: SPACING.xs,
-  },
-  step: {
-    flexDirection: "row",
-    minHeight: 43,
-    gap: SPACING.md,
-  },
-  stepIndicator: {
-    width: 22,
-    alignItems: "center",
-  },
-  pendingDot: {
-    width: 13,
-    height: 13,
-    borderRadius: RADIUS.full,
-    borderWidth: 2,
-    borderColor: COLORS.border.light,
-    marginTop: 3,
-  },
-  stepLine: {
-    width: 2,
-    flex: 1,
-    backgroundColor: COLORS.border.light,
-    marginVertical: 3,
-  },
-  completedLine: {
-    backgroundColor: COLORS.brand.primary,
-  },
-  stepLabel: {
-    fontSize: 13,
-    color: COLORS.text.secondary,
-    paddingTop: 2,
-  },
-  currentStep: {
-    fontWeight: "700",
-    color: COLORS.brand.primary,
-  },
-  infoCard: {
-    gap: SPACING.md,
-  },
-  infoHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: SPACING.md,
-  },
-  iconContainer: {
-    width: 42,
-    height: 42,
-    borderRadius: RADIUS.md,
-    backgroundColor: COLORS.brand.primaryLight,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  destinationIcon: {
-    backgroundColor: COLORS.brand.accentLight,
-  },
-  infoText: {
-    flex: 1,
-    gap: 4,
-  },
-  infoTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: COLORS.text.primary,
-  },
-  infoSubtitle: {
-    fontSize: 12,
-    color: COLORS.text.secondary,
-    lineHeight: 18,
-  },
-  itemsCard: {
-    gap: SPACING.md,
-  },
-  itemRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: SPACING.sm,
-  },
-  itemNameContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: SPACING.sm,
-    flex: 1,
-  },
-  itemQuantity: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: COLORS.brand.primary,
-  },
-  itemName: {
-    fontSize: 13,
-    color: COLORS.text.primary,
-  },
-  itemPrice: {
-    fontSize: 13,
-    fontWeight: "500",
-    color: COLORS.text.primary,
-  },
-  separator: {
-    height: 1,
-    backgroundColor: COLORS.border.light,
-  },
-  feeLabel: {
-    fontSize: 12,
-    color: COLORS.text.secondary,
-  },
-  totalLabel: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: COLORS.text.primary,
-  },
-  notesCard: {
-    backgroundColor: COLORS.brand.accentLight,
-    borderColor: COLORS.brand.accentLight,
-  },
-  notesText: {
-    fontSize: 13,
-    color: COLORS.text.primary,
-    lineHeight: 19,
-  },
-  trackingCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: SPACING.md,
-    backgroundColor: COLORS.brand.primaryLight,
-    borderColor: COLORS.brand.primaryLight,
-  },
+  screen: { flex: 1, backgroundColor: COLORS.background.light },
+  content: { padding: SPACING.lg, paddingTop: SPACING.md, paddingBottom: 48 },
+  notFound: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: COLORS.background.light },
+  notFoundText: { color: COLORS.text.primary, fontWeight: "700" },
+  backButton: { flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: SPACING.sm, marginBottom: SPACING.lg },
+  backText: { color: COLORS.text.secondary, fontSize: 12, fontWeight: "700" },
+  heading: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: SPACING.lg },
+  headingCopy: { flex: 1 },
+  eyebrow: { color: COLORS.brand.primary, fontSize: 9, fontWeight: "800", letterSpacing: 1.2, marginBottom: 5 },
+  reference: { color: COLORS.text.primary, fontSize: 22, fontWeight: "800" },
+  cardHeading: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: SPACING.md },
+  cardTitle: { color: COLORS.text.primary, fontSize: 14, fontWeight: "800" },
+  personName: { color: COLORS.text.primary, fontSize: 15, fontWeight: "800", marginBottom: 6 },
+  inlineInfo: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 5 },
+  mutedText: { color: COLORS.text.secondary, fontSize: 12, lineHeight: 18, flexShrink: 1 },
+  callButton: { flexDirection: "row", alignItems: "center", gap: 8, alignSelf: "flex-start", paddingHorizontal: 12, paddingVertical: 9, borderRadius: RADIUS.md, backgroundColor: COLORS.brand.primaryLight, marginTop: SPACING.md },
+  callText: { color: COLORS.brand.primary, fontSize: 11, fontWeight: "800" },
+  itemRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 10, paddingVertical: 10 },
+  itemCopy: { flex: 1 },
+  itemName: { color: COLORS.text.primary, fontSize: 12, fontWeight: "700", marginBottom: 3 },
+  itemPrice: { color: COLORS.text.primary, fontSize: 12, fontWeight: "700" },
+  separator: { height: 1, backgroundColor: COLORS.border.light, marginVertical: 8 },
+  totalRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 5 },
+  totalLabel: { color: COLORS.text.primary, fontSize: 13, fontWeight: "800" },
+  totalValue: { color: COLORS.brand.primary, fontSize: 16, fontWeight: "900" },
+  trackingNotice: { flexDirection: "row", gap: 12, padding: SPACING.lg, borderRadius: RADIUS.lg, backgroundColor: COLORS.brand.primaryLight, marginBottom: SPACING.md },
+  trackingTitle: { color: COLORS.text.primary, fontWeight: "800", fontSize: 13, marginBottom: 4 },
+  cancelButton: { flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 8, padding: SPACING.md, marginTop: SPACING.sm },
+  cancelText: { color: COLORS.status.error, fontSize: 12, fontWeight: "800" },
+  terminalNotice: { flexDirection: "row", alignItems: "center", gap: 9, padding: SPACING.lg, borderRadius: RADIUS.lg, backgroundColor: "#E7F4EB" },
+  terminalText: { color: COLORS.status.success, fontWeight: "800", fontSize: 12 },
+  cancelledNotice: { flexDirection: "row", alignItems: "center", gap: 9, padding: SPACING.lg, borderRadius: RADIUS.lg, backgroundColor: "#FCEAEA" },
+  cancelledText: { color: COLORS.status.error, fontWeight: "800", fontSize: 12 },
+  disclaimer: { color: COLORS.text.secondary, textAlign: "center", fontSize: 9, lineHeight: 14, marginTop: SPACING.lg },
 });

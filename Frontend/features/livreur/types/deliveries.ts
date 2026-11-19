@@ -1,4 +1,3 @@
-
 export type DeliveryStatus =
   | "new"
   | "accepted"
@@ -10,23 +9,10 @@ export type DeliveryStatus =
 export type Delivery = {
   id: string;
   reference: string;
-  customer: {
-    name: string;
-    phone: string;
-  };
-  pickup: {
-    name: string;
-    address: string;
-  };
-  destination: {
-    address: string;
-    city: string;
-  };
-  items: {
-    name: string;
-    quantity: number;
-    price: number;
-  }[];
+  customer: { name: string; phone: string };
+  pickup: { name: string; address: string };
+  destination: { address: string; city: string };
+  items: { name: string; quantity: number; price: number }[];
   total: number;
   deliveryFee: number;
   status: DeliveryStatus;
